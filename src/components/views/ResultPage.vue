@@ -22,6 +22,16 @@ export default {
           this.result = res.data.data;
         }
       });
+    },
+
+    /**
+     * @description: 推送至收据页面
+     * @author 13299
+     */
+    goToMain(){
+      this.$router.push({ //推送至收据页面
+        path: "/MainPage",
+      });
     }
   },
 
@@ -32,6 +42,7 @@ export default {
 </script>
 
 <template>
+  <button class="btn btn-outline-primary switch" @click="goToMain">切换</button>
   <div class="center-box">
     <div class="card">
       <table class="table table-striped table-hover">
@@ -77,5 +88,11 @@ export default {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
+}
+
+.switch{
+  position: absolute;
+  left: 10px;
+  top: 10px;
 }
 </style>

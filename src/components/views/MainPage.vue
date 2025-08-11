@@ -212,6 +212,16 @@ export default {
       if (this.consumer.wu)
         this.wu = perPerson;
     },
+
+    /**
+     * @description: 推送至结果页面
+     * @author 13299
+     */
+    goToResult(){
+      this.$router.push({ //推送至结果页面
+        path: "/ResultPage",
+      });
+    }
   },
 
   computed: {
@@ -231,6 +241,7 @@ export default {
 </script>
 
 <template>
+  <button class="btn btn-outline-primary switch" @click="goToResult">切换</button>
   <div class="center-box">
     <div class="card">
       <div class="mb-3">
@@ -346,5 +357,11 @@ export default {
 .pagination{
   display: flex;
   justify-content: center;
+}
+
+.switch{
+  position: absolute;
+  left: 10px;
+  top: 10px;
 }
 </style>
