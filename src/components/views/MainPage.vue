@@ -5,6 +5,10 @@ export default {
   data(){
     return{
       receipts:[],
+      rows: 1, //总页数，十条一页
+      row: 1, //当前所在页码，展示至多9个页码
+      leftRow: 0, //翻页条左界
+      rightRow: 0, //翻页条右界
       description: "",
       dateTime: "",
       shen: 0.00,
@@ -27,12 +31,87 @@ export default {
      * @author 13299
      */
     getAllReceipts(){
+      const data = {
+        pageNo: this.row,
+        pageSize: 20,
+      };
       this.$axios({
         url: this.$baseUrl + "/api/getAllReceipts",
-        method: "GET",
+        method: "POST",
+        data: data,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+        }
       }).then(res => {
-        this.receipts = res.data.data;
+        this.receipts = res.data.data.records;
+        this.rows = res.data.data.total / 20; //设置rows属性，二十条一页
+        if ((res.data.data.total / 20) % 1 !== 0){ //判断对象数量能不能被20整除
+          this.rows = Math.floor(res.data.data.total / 20) + 1; //不能则多设置一页存放多余对象
+        }
+        if (this.rows > 9){ //若总页数大于9，则设置初始右界为9
+          this.rightRow = 9;
+
+        }else { //若不足9页，则设置页数为初始右界
+          this.rightRow = this.rows;
+        }
       });
+    },
+
+    /**
+     * @description: 跳转至下一页
+     * @author 13299
+     */
+    nextPage(){
+      if (this.row < this.rows){
+        this.row++;
+        if (this.row > this.rightRow-1 && this.rightRow < this.rows){ //在页码将等于右界时将页码范围右移
+          this.rightRow++;
+          this.leftRow++;
+        }
+      }
+      this.getAllReceipts();
+    },
+
+    /**
+     * @description: 跳转至上一页
+     * @author 13299
+     */
+    previousPage(){
+      if (this.row > 1){
+        this.row--;
+        if (this.row === this.leftRow+1 && this.leftRow > 0){ //在页码将等于左界时将页码范围左移
+          this.rightRow--;
+          this.leftRow--;
+        }
+      }
+      this.getAllReceipts();
+    },
+
+    /**
+     * @description: 跳转至指定页码
+     * @author 13299
+     */
+    jumpPage(index){
+      this.row = index;
+      if (index - 5 < 0){ //在跳转目标小于5时，设置左界为1
+        this.leftRow = 0;
+        if (this.rows > 9) //右界为9或页码数
+          this.rightRow = 9;
+        else
+          this.rightRow = this.rows;
+
+      }else if (index + 4 > this.rows){ //在跳转目标离总页数小于4时，设置右界为总页数
+        this.rightRow = this.rows;
+        if (this.rows - 9 < 0) //左界为1或总页数-9
+          this.leftRow = 0;
+        else
+          this.leftRow = this.rows - 9;
+
+      }else { //中间正常情况，始终保持跳转目标为左右界中间值
+        this.leftRow = this.row - 5;
+        this.rightRow = this.row + 4;
+      }
+      this.getAllReceipts();
     },
 
     /**
@@ -135,6 +214,16 @@ export default {
     },
   },
 
+  computed: {
+    /**
+     * @description: 根据rows属性迭代出页码列表
+     * @author 13299
+     */
+    generatedRows(){
+      return Array.from({ length: this.rows }, (_, index) => ({ id: index + 1 }));
+    },
+  },
+
   created() {
     this.getAllReceipts();
   }
@@ -202,10 +291,34 @@ export default {
           <td>{{item.xu}}</td>
           <td>{{item.wu}}</td>
           <td>{{item.payer}}</td>
-          <td><button class="btn btn-outline-primary" @click="deleteReceipt(item.id)">删除</button></td>
+          <td><button class="btn btn-outline-primary btn-sm" @click="deleteReceipt(item.id)"
+                      style="--bs-btn-padding-y: 0rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .85rem;">删除</button></td>
         </tr>
         </tbody>
       </table>
+      <ul class="pagination">
+        <li class="page-item">
+          <a class="page-link" @click="jumpPage(1)">
+            <span><i class="bi bi-chevron-bar-left"></i></span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" @click="previousPage">
+            <span>&laquo;</span>
+          </a>
+        </li>
+        <li class="page-item" v-for="{id} in generatedRows.slice(leftRow, rightRow)" @click="jumpPage(id)" :key="id"><a class="page-link" :class="{'chosen': id === row}">{{ id }}</a></li>
+        <li class="page-item">
+          <a class="page-link" @click="nextPage">
+            <span>&raquo;</span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" @click="jumpPage(this.rows)">
+            <span><i class="bi bi-chevron-bar-right"></i></span>
+          </a>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -228,5 +341,10 @@ export default {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #ffffff;
+}
+
+.pagination{
+  display: flex;
+  justify-content: center;
 }
 </style>
