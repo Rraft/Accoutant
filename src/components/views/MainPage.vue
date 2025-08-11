@@ -22,6 +22,10 @@ export default {
   },
 
   methods: {
+    /**
+     * @description: 获取所有的收据信息
+     * @author 13299
+     */
     getAllReceipts(){
       this.$axios({
         url: this.$baseUrl + "/api/getAllReceipts",
@@ -31,6 +35,10 @@ export default {
       });
     },
 
+    /**
+     * @description: 保存收据至数据库
+     * @author 13299
+     */
     saveReceipt(){
       const data = {
         description: this.description,
@@ -57,6 +65,31 @@ export default {
       });
     },
 
+    /**
+     * @description: 根据id删除收据
+     * @author 13299
+     */
+    deleteReceipt(id){
+      let formData = new FormData();
+      formData.append("id", id);
+      this.axios({
+        url: this.$baseUrl + "/api/deleteReceiptById",
+        method: "POST",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        }
+      }).then(res => {
+        if (res.data.code === 0){
+          this.getAllReceipts();
+        }
+      });
+    },
+
+    /**
+     * @description: 添加收据的消费人
+     * @author 13299
+     */
     addConsumer(name){
       switch (name){
         case 'Xu':
@@ -83,6 +116,10 @@ export default {
       }
     },
 
+    /**
+     * @description: 根据消费人自动分账
+     * @author 13299
+     */
     autoSplit(){
       this.xu = 0.00;
       this.shen = 0.00;
@@ -154,6 +191,7 @@ export default {
           <th scope="col">徐涵浩's</th>
           <th scope="col">吴锋's</th>
           <th scope="col">付款人</th>
+          <th scope="col">删除</th>
         </tr>
         </thead>
         <tbody>
@@ -164,6 +202,7 @@ export default {
           <td>{{item.xu}}</td>
           <td>{{item.wu}}</td>
           <td>{{item.payer}}</td>
+          <td><button class="btn btn-outline-primary" @click="deleteReceipt(item.id)">删除</button></td>
         </tr>
         </tbody>
       </table>
