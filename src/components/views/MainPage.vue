@@ -151,7 +151,7 @@ export default {
     deleteReceipt(id){
       let formData = new FormData();
       formData.append("id", id);
-      this.axios({
+      this.$axios({
         url: this.$baseUrl + "/api/deleteReceiptById",
         method: "POST",
         data: formData,
