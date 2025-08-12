@@ -302,7 +302,7 @@ export default {
           <td>{{item.xu}}</td>
           <td>{{item.wu}}</td>
           <td>{{item.payer}}</td>
-          <td><button class="btn btn-outline-primary btn-sm" @click="deleteReceipt(item.id)"
+          <td><button class="btn btn-outline-danger btn-sm" @click="deleteReceipt(item.id)"
                       style="--bs-btn-padding-y: 0rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .85rem;">删除</button></td>
         </tr>
         </tbody>
