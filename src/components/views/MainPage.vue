@@ -241,7 +241,7 @@ export default {
 </script>
 
 <template>
-  <button class="btn btn-outline-primary switch" @click="goToResult">切换</button>
+  <button class="btn btn-outline-primary switch" @click="goToResult">结算</button>
   <div class="center-box">
     <div class="card">
       <div class="mb-3">
@@ -357,6 +357,10 @@ export default {
 .pagination{
   display: flex;
   justify-content: center;
+}
+
+.page-item{
+  cursor: pointer;
 }
 
 .switch{

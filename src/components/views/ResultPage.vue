@@ -42,7 +42,7 @@ export default {
 </script>
 
 <template>
-  <button class="btn btn-primary switch" @click="goToMain">切换</button>
+  <button class="btn btn-outline-primary switch" @click="goToMain">收据</button>
   <div class="center-box">
     <div class="card">
       <table class="table table-striped table-hover">
