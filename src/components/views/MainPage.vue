@@ -198,6 +198,14 @@ export default {
     },
 
     /**
+     * @description: 自动计算账单总价
+     * @author 13299
+     */
+    autoSum(){
+      this.totalAmount = this.xu + this.shen + this.wu;
+    },
+
+    /**
      * @description: 根据消费人自动分账
      * @author 13299
      */
@@ -298,6 +306,7 @@ export default {
         <input type="number" step="0.01" class="form-control" placeholder="手动输入配额" v-model="wu">
       </div>
       <div class="d-inline-flex gap-1">
+        <button type="button" class="btn btn-secondary" @click="autoSum">计算总价</button>
         <button type="button" class="btn btn-secondary" @click="autoSplit">自动分配</button>
         <button type="button" class="btn btn-secondary" @click="autoGST">自动计税</button>
         <button type="button" class="btn btn-primary" @click="saveReceipt">保存</button>
