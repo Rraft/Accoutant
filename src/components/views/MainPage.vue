@@ -221,9 +221,9 @@ export default {
      */
     autoGST(){
       const rate = (100 + this.serviceCharge) * (100 + this.GST) / 10000;
-      this.xu = this.xu * rate;
-      this.wu = this.wu * rate;
-      this.shen = this.shen * rate;
+      this.xu = parseFloat((this.xu * rate).toFixed(2));
+      this.wu = parseFloat((this.wu * rate).toFixed(2));
+      this.shen = parseFloat((this.shen * rate).toFixed(2));
     },
 
     /**
