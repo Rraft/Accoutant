@@ -22,8 +22,8 @@ export default {
       },
       consumerCount: 0,
       totalAmount: 0.00,
-      serviceCharge: 0,
-      GST: 0,
+      serviceCharge: 10,
+      GST: 9,
     }
   },
 
