@@ -299,7 +299,7 @@ export default {
       </div>
       <div class="d-inline-flex gap-1">
         <button type="button" class="btn btn-secondary" @click="autoSplit">自动分配</button>
-        <button type="button" class="btn btn-secondary" @click="autoSplit">自动计税</button>
+        <button type="button" class="btn btn-secondary" @click="autoGST">自动计税</button>
         <button type="button" class="btn btn-primary" @click="saveReceipt">保存</button>
       </div>
     </div>
