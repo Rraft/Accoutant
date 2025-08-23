@@ -22,6 +22,8 @@ export default {
       },
       consumerCount: 0,
       totalAmount: 0.00,
+      serviceCharge: 0,
+      GST: 0,
     }
   },
 
@@ -214,6 +216,17 @@ export default {
     },
 
     /**
+     * @description: 自动根据服务费率和税率计算消费
+     * @author 13299
+     */
+    autoGST(){
+      const rate = (100 + this.serviceCharge) * (100 + this.GST) / 10000;
+      this.xu = this.xu * rate;
+      this.wu = this.wu * rate;
+      this.shen = this.shen * rate;
+    },
+
+    /**
      * @description: 推送至结果页面
      * @author 13299
      */
@@ -264,6 +277,14 @@ export default {
         <label for="totalAmount" class="form-label">总价值</label>
         <input type="number" step="0.01" class="form-control" id="totalAmount" placeholder="总价值" v-model="totalAmount">
       </div>
+      <div class="mb-3">
+        <label for="totalAmount" class="form-label">服务费率(%)</label>
+        <input type="number" step="1" class="form-control" id="totalAmount" placeholder="服务费率" v-model="serviceCharge">
+      </div>
+      <div class="mb-3">
+        <label for="totalAmount" class="form-label">税率(%)</label>
+        <input type="number" step="1" class="form-control" id="totalAmount" placeholder="税率" v-model="GST">
+      </div>
       <div class="input-group mb-3">
         <button class="btn btn-outline-primary" @click="addConsumer('Xu')" :class="{ active: consumer.xu}" data-bs-placement="top">徐涵浩</button>
         <input type="number" step="0.01" class="form-control" placeholder="手动输入配额" v-model="xu">
@@ -278,6 +299,7 @@ export default {
       </div>
       <div class="d-inline-flex gap-1">
         <button type="button" class="btn btn-secondary" @click="autoSplit">自动分配</button>
+        <button type="button" class="btn btn-secondary" @click="autoSplit">自动计税</button>
         <button type="button" class="btn btn-primary" @click="saveReceipt">保存</button>
       </div>
     </div>
