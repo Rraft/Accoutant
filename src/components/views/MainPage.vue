@@ -399,4 +399,9 @@ export default {
   left: 10px;
   top: 10px;
 }
+
+.chosen{
+  color: white;
+  background-color: #0d6efd;
+}
 </style>
