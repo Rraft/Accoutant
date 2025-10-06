@@ -210,17 +210,14 @@ export default {
      * @author 13299
      */
     autoSplit(){
-      this.xu = 0.00;
-      this.shen = 0.00;
-      this.wu = 0.00;
       let perPerson = this.totalAmount / this.consumerCount;
       perPerson = parseFloat(perPerson.toFixed(2));
       if (this.consumer.xu)
-        this.xu = perPerson;
+        this.xu += perPerson;
       if (this.consumer.shen)
-        this.shen = perPerson;
+        this.shen += perPerson;
       if (this.consumer.wu)
-        this.wu = perPerson;
+        this.wu += perPerson;
     },
 
     /**
