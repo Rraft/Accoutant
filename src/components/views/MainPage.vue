@@ -209,7 +209,7 @@ export default {
      * @description: 根据消费人自动分账
      * @author 13299
      */
-    autoSplit(){
+    autoAdd(){
       let perPerson = this.totalAmount / this.consumerCount;
       perPerson = parseFloat(perPerson.toFixed(2));
       if (this.consumer.xu)
@@ -218,6 +218,21 @@ export default {
         this.shen += perPerson;
       if (this.consumer.wu)
         this.wu += perPerson;
+    },
+
+    /**
+     * @description: 根据消费人自动分账
+     * @author 13299
+     */
+    autoMinus(){
+      let perPerson = this.totalAmount / this.consumerCount;
+      perPerson = parseFloat(perPerson.toFixed(2));
+      if (this.consumer.xu)
+        this.xu -= perPerson;
+      if (this.consumer.shen)
+        this.shen -= perPerson;
+      if (this.consumer.wu)
+        this.wu -= perPerson;
     },
 
     /**
@@ -279,8 +294,8 @@ export default {
         </select>
       </div>
       <div class="mb-3">
-        <label for="totalAmount" class="form-label">总价值</label>
-        <input type="number" step="0.01" class="form-control" id="totalAmount" placeholder="总价值" v-model="totalAmount">
+        <label for="totalAmount" class="form-label">总价</label>
+        <input type="number" step="0.01" class="form-control" id="totalAmount" placeholder="总价" v-model="totalAmount">
       </div>
       <div class="mb-3">
         <label for="totalAmount" class="form-label">服务费率(%)</label>
@@ -304,7 +319,8 @@ export default {
       </div>
       <div class="d-inline-flex gap-1">
         <button type="button" class="btn btn-secondary" @click="autoSum">计算总价</button>
-        <button type="button" class="btn btn-secondary" @click="autoSplit">自动分配</button>
+        <button type="button" class="btn btn-secondary" @click="autoAdd">增量分配</button>
+        <button type="button" class="btn btn-secondary" @click="autoMinus">减量分配</button>
         <button type="button" class="btn btn-secondary" @click="autoGST">自动计税</button>
         <button type="button" class="btn btn-primary" @click="saveReceipt">保存</button>
       </div>
