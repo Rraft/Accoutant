@@ -9,7 +9,6 @@ import router from "@/components/router/index.js";
 
 
 const app = createApp(App);
-app.config.globalProperties.$pageUrl = import.meta.env.VITE_APP_PAGEURL;
 app.config.globalProperties.$baseUrl = import.meta.env.VITE_APP_BASEURL;
 app.config.globalProperties.$axios = axios;
 app.use(router);

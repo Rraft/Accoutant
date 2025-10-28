@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: "ResultPage",
+  name: "BillPage",
 
   data(){
     return{
