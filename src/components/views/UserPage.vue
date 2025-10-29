@@ -192,6 +192,7 @@ export default {
       }).then((res) => {
         if (res.data.code === 0) {
           this.getPage();
+          this.newUser.name = "";
         } else {
           this.warnText = `${res.data.code}: ${res.data.msg}`;
           this.$refs.warn.style.display = "flex";
@@ -342,7 +343,7 @@ export default {
         <div class="modal-content">
           <div class="modal-header">
             <h1 class="modal-title fs-5">编辑</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" @click="closeModal"></button>
           </div>
           <div class="modal-body">
             <div class="input-group modal-input">
@@ -403,7 +404,7 @@ export default {
         <div class="modal-content">
           <div class="modal-header">
             <h1 class="modal-title fs-5">新增用户</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" @click="closeModal"></button>
           </div>
           <div class="modal-body">
             <div class="input-group modal-input">
@@ -463,7 +464,7 @@ export default {
         <div class="modal-content">
           <div class="modal-header">
             <h1 class="modal-title fs-5">根据分组筛选</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" @click="closeModal"></button>
           </div>
           <div class="modal-body">
             <div class="input-group modal-input">
@@ -552,7 +553,6 @@ export default {
 .search-bar{
   display: flex;
   flex-direction: row;
-
 }
 
 .pagination{

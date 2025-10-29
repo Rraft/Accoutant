@@ -1,393 +1,363 @@
 <script>
+import SideBar from "@/components/common/SideBar.vue";
+import Decimal from "decimal.js";
+
 export default {
   name: "MainPage",
+  components: { SideBar },
 
-  data(){
-    return{
-      receipts:[],
-      rows: 1, //总页数，十条一页
-      row: 1, //当前所在页码，展示至多9个页码
-      leftRow: 0, //翻页条左界
-      rightRow: 0, //翻页条右界
-      description: "",
-      dateTime: "",
-      shen: 0.00,
-      xu: 0.00,
-      wu: 0.00,
-      payer: "XU",
-      consumer: {
-        xu: false,
-        shen: false,
-        wu: false,
+  data() {
+    return {
+      warnText: "",
+      originGroup: { id: null, name: "" },
+      currentGroup: { id: null, name: "" },
+      users: [],
+      newReceipt: {
+        description: "",
+        dateTime: "",
+        payerId: null,
       },
-      consumerCount: 0,
-      totalAmount: 0.00,
-      serviceCharge: 10,
-      GST: 9,
-    }
+      totalAmount: new Decimal(0),
+      serviceCharge: new Decimal(10),
+      GST: new Decimal(9),
+      // 组选择相关
+      groupList: [],
+      groupSearch: "",
+      groupPageNo: 1,
+      groupPageSize: 10,
+      groupTotal: 0,
+    };
   },
 
   methods: {
     /**
-     * @description: 获取所有的收据信息
+     * @description: 重置警告栏
      * @author 13299
      */
-    getAllReceipts(){
-      const data = {
-        pageNo: this.row,
-        pageSize: 20,
-      };
-      this.$axios({
-        url: this.$baseUrl + "/api/getAllReceipts",
-        method: "POST",
-        data: data,
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-        }
-      }).then(res => {
-        this.receipts = res.data.data.records;
-        this.rows = res.data.data.total / 20; //设置rows属性，二十条一页
-        if ((res.data.data.total / 20) % 1 !== 0){ //判断对象数量能不能被20整除
-          this.rows = Math.floor(res.data.data.total / 20) + 1; //不能则多设置一页存放多余对象
-        }
-        if (this.rows > 9){ //若总页数大于9，则设置初始右界为9
-          this.rightRow = 9;
+    alertInit(el) {
+      el.style.display = "none";
+      el.style.animation = "none";
+    },
 
-        }else { //若不足9页，则设置页数为初始右界
-          this.rightRow = this.rows;
+    /**
+     * @description: 获取分组分页
+     * @author 13299
+     */
+    async fetchGroupList(page = 1) {
+      this.groupPageNo = page;
+      const res = await this.$axios({
+        url: this.$baseUrl + "/group/getPage",
+        method: "POST",
+        headers: { "Content-Type": "application/json;charset=UTF-8" },
+        data: {
+          pageSize: this.groupPageSize,
+          pageNo: this.groupPageNo,
+          keyword: this.groupSearch,
+        },
+      });
+      const { records, total } = res.data.data;
+      this.groupList = records || [];
+      this.groupTotal = total || 0;
+    },
+
+    /**
+     * @description: 根据分组获取用户
+     * @author 13299
+     */
+    getUserByGroup() {
+      this.$axios({
+        url: this.$baseUrl + "/user/getUserByGroup",
+        method: "POST",
+        headers: { "Content-Type": "application/json;charset=UTF-8" },
+        params: { groupId: this.currentGroup.id },
+      }).then((res) => {
+        this.users = res.data.data;
+        this.users.forEach((user) => {
+          user.active = false;
+          user.amount = new Decimal(0);
+        });
+      });
+    },
+
+    /**
+     * @description: 打开Modal，存储原分组
+     * @author 13299
+     */
+    openModal() {
+      this.originGroup = this.currentGroup;
+      this.getUserByGroup(1);
+    },
+
+    /**
+     * @description: 关闭Modal，不更换分组重新添入原分组
+     * @author 13299
+     */
+    cancelFilter() {
+      this.currentGroup = this.originGroup;
+      this.groupSearch = "";
+    },
+
+    /**
+     * @description: 更换分组
+     * @author 13299
+     */
+    doFilter() {
+      this.getUserByGroup();
+    },
+
+    /**
+     * @description: 设置用户激活状态，用于自动分账
+     * @author 13299
+     */
+    setActive(user) {
+      user.active = !user.active;
+    },
+
+    /**
+     * @description: 自动计算账单总价（使用 Decimal 精确求和）
+     * @author 13299
+     */
+    autoSum() {
+      let sum = new Decimal(0);
+      this.users.forEach((user) => {
+        const amt = new Decimal(user.amount || 0);
+        sum = sum.plus(amt);
+      });
+      this.totalAmount = sum;
+    },
+
+    /**
+     * @description: 根据消费人自动分账（加）
+     * @author 13299
+     */
+    autoAdd() {
+      const consumers = this.users.filter((u) => u.active);
+      if (consumers.length === 0) return;
+
+      const perPerson = new Decimal(this.totalAmount)
+          .div(consumers.length)
+          .toDecimalPlaces(2);
+
+      this.users.forEach((user) => {
+        if (user.active) {
+          user.amount = new Decimal(user.amount || 0).plus(perPerson).toDecimalPlaces(2);
         }
       });
     },
 
     /**
-     * @description: 跳转至下一页
+     * @description: 根据消费人自动分账（减）
      * @author 13299
      */
-    nextPage(){
-      if (this.row < this.rows){
-        this.row++;
-        if (this.row > this.rightRow-1 && this.rightRow < this.rows){ //在页码将等于右界时将页码范围右移
-          this.rightRow++;
-          this.leftRow++;
-        }
-      }
-      this.getAllReceipts();
-    },
+    autoMinus() {
+      const consumers = this.users.filter((u) => u.active);
+      if (consumers.length === 0) return;
 
-    /**
-     * @description: 跳转至上一页
-     * @author 13299
-     */
-    previousPage(){
-      if (this.row > 1){
-        this.row--;
-        if (this.row === this.leftRow+1 && this.leftRow > 0){ //在页码将等于左界时将页码范围左移
-          this.rightRow--;
-          this.leftRow--;
-        }
-      }
-      this.getAllReceipts();
-    },
+      const perPerson = new Decimal(this.totalAmount)
+          .div(consumers.length)
+          .toDecimalPlaces(2);
 
-    /**
-     * @description: 跳转至指定页码
-     * @author 13299
-     */
-    jumpPage(index){
-      this.row = index;
-      if (index - 5 < 0){ //在跳转目标小于5时，设置左界为1
-        this.leftRow = 0;
-        if (this.rows > 9) //右界为9或页码数
-          this.rightRow = 9;
-        else
-          this.rightRow = this.rows;
-
-      }else if (index + 4 > this.rows){ //在跳转目标离总页数小于4时，设置右界为总页数
-        this.rightRow = this.rows;
-        if (this.rows - 9 < 0) //左界为1或总页数-9
-          this.leftRow = 0;
-        else
-          this.leftRow = this.rows - 9;
-
-      }else { //中间正常情况，始终保持跳转目标为左右界中间值
-        this.leftRow = this.row - 5;
-        this.rightRow = this.row + 4;
-      }
-      this.getAllReceipts();
-    },
-
-    /**
-     * @description: 保存收据至数据库
-     * @author 13299
-     */
-    saveReceipt(){
-      const data = {
-        description: this.description,
-        dateTime: this.dateTime,
-        shen: this.shen,
-        xu: this.xu,
-        wu: this.wu,
-        payer: this.payer,
-      };
-      this.$axios({
-        url: this.$baseUrl + "/api/saveReceipt",
-        method: "POST",
-        data: data,
-        headers: {
-          "Content-Type": "application/json;charset=UTF-8",
-        }
-      }).then(res => {
-        if (res.data.code === 0){
-          this.getAllReceipts();
-          this.shen = 0.00;
-          this.xu = 0.00;
-          this.wu = 0.00;
+      this.users.forEach((user) => {
+        if (user.active) {
+          user.amount = new Decimal(user.amount || 0).minus(perPerson).toDecimalPlaces(2);
         }
       });
-    },
-
-    /**
-     * @description: 根据id删除收据
-     * @author 13299
-     */
-    deleteReceipt(id){
-      let formData = new FormData();
-      formData.append("id", id);
-      this.$axios({
-        url: this.$baseUrl + "/api/deleteReceiptById",
-        method: "POST",
-        data: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        }
-      }).then(res => {
-        if (res.data.code === 0){
-          this.getAllReceipts();
-        }
-      });
-    },
-
-    /**
-     * @description: 添加收据的消费人
-     * @author 13299
-     */
-    addConsumer(name){
-      switch (name){
-        case 'Xu':
-          if (this.consumer.xu === true)
-            this.consumerCount--;
-          else
-            this.consumerCount++;
-          this.consumer.xu = !this.consumer.xu;
-          break;
-        case 'Shen':
-          if (this.consumer.shen === true)
-            this.consumerCount--;
-          else
-            this.consumerCount++;
-          this.consumer.shen = !this.consumer.shen;
-          break;
-        case 'Wu':
-          if (this.consumer.wu === true)
-            this.consumerCount--;
-          else
-            this.consumerCount++;
-          this.consumer.wu = !this.consumer.wu;
-          break;
-      }
-    },
-
-    /**
-     * @description: 自动计算账单总价
-     * @author 13299
-     */
-    autoSum(){
-      this.totalAmount = this.xu + this.shen + this.wu;
-    },
-
-    /**
-     * @description: 根据消费人自动分账
-     * @author 13299
-     */
-    autoAdd(){
-      let perPerson = this.totalAmount / this.consumerCount;
-      perPerson = parseFloat(perPerson.toFixed(2));
-      if (this.consumer.xu)
-        this.xu += perPerson;
-      if (this.consumer.shen)
-        this.shen += perPerson;
-      if (this.consumer.wu)
-        this.wu += perPerson;
-    },
-
-    /**
-     * @description: 根据消费人自动分账
-     * @author 13299
-     */
-    autoMinus(){
-      let perPerson = this.totalAmount / this.consumerCount;
-      perPerson = parseFloat(perPerson.toFixed(2));
-      if (this.consumer.xu)
-        this.xu -= perPerson;
-      if (this.consumer.shen)
-        this.shen -= perPerson;
-      if (this.consumer.wu)
-        this.wu -= perPerson;
     },
 
     /**
      * @description: 自动根据服务费率和税率计算消费
      * @author 13299
      */
-    autoGST(){
-      const rate = (100 + this.serviceCharge) * (100 + this.GST) / 10000;
-      this.xu = parseFloat((this.xu * rate).toFixed(2));
-      this.wu = parseFloat((this.wu * rate).toFixed(2));
-      this.shen = parseFloat((this.shen * rate).toFixed(2));
+    autoGST() {
+      const rate = new Decimal(100)
+          .plus(this.serviceCharge)
+          .times(new Decimal(100).plus(this.GST))
+          .div(10000); // ((100+serviceCharge)*(100+GST))/10000
+
+      this.users.forEach((user) => {
+        if (user.active) {
+          user.amount = new Decimal(user.amount || 0).times(rate).toDecimalPlaces(2);
+        }
+      });
     },
 
     /**
-     * @description: 推送至结果页面
+     * @description: 新建收据
      * @author 13299
      */
-    goToResult(){
-      this.$router.push({ //推送至结果页面
-        path: "/ResultPage",
+    add() {
+      // 发送前转为普通数值
+      this.newReceipt.groupId = this.currentGroup.id;
+      this.newReceipt.consumers = this.users.map((u) => ({
+        ...u,
+        amount: new Decimal(u.amount || 0).toNumber(),
+      }));
+      this.$axios({
+        url: this.$baseUrl + "/receipt/add",
+        method: "POST",
+        headers: { "Content-Type": "application/json;charset=UTF-8" },
+        data: this.newReceipt,
+      }).then((res) => {
+        if (res.data.code === 0) {
+          this.users.forEach(user => {
+            user.amount = new Decimal(0);
+            this.newReceipt.description = "";
+            this.newReceipt.dateTime = "";
+            this.newReceipt.payerId = null;
+            this.totalAmount = new Decimal(0);
+          })
+        } else {
+          this.warnText = `${res.data.code}: ${res.data.msg}`;
+          this.$refs.warn.style.display = "flex";
+          this.$refs.warn.style.animation = "fadeOut 2s ease both";
+          setTimeout(this.alertInit, 2000, this.$refs.warn);
+        }
       });
-    }
+    },
   },
 
   computed: {
-    /**
-     * @description: 根据rows属性迭代出页码列表
-     * @author 13299
-     */
-    generatedRows(){
-      return Array.from({ length: this.rows }, (_, index) => ({ id: index + 1 }));
+    groupTotalPages() {
+      return Math.ceil(this.groupTotal / this.groupPageSize);
     },
   },
 
-  created() {
-    this.getAllReceipts();
-  }
-}
+  async created() {
+    await this.fetchGroupList(1);
+    if (this.groupList.length > 0) {
+      this.currentGroup = this.groupList[0];
+      this.getUserByGroup();
+    }
+  },
+};
 </script>
 
 <template>
-  <button class="btn btn-outline-primary switch" @click="goToResult">结算</button>
-  <div class="center-box">
-    <div class="card">
-      <div class="mb-3">
-        <label for="description" class="form-label">描述</label>
-        <input type="text" class="form-control" id="description" placeholder="消费描述" v-model="description">
+  <div class="outer">
+    <div class="alert alert-danger" role="alert" ref="warn">
+      {{ warnText }}
+    </div>
+    <side-bar></side-bar>
+    <div class="card panel">
+      <div class="card title">
+        <i class="bi bi-person"></i>
+        <span class="me-3">新建收据</span>
+        <div class="input-group modal-input">
+          <span class="input-group-text">当前分组</span>
+          <input type="text" class="form-control" readonly style="max-width: 300px;" v-model="currentGroup.name">
+          <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="openModal">选择</button>
+        </div>
       </div>
-      <div class="mb-3">
-        <label for="date" class="form-label">消费时间</label>
-        <input type="datetime-local" class="form-control" id="date" v-model="dateTime">
-      </div>
-      <div class="mb-3">
-        <label for="payerSelector" class="form-label">付款人</label>
-        <select class="form-select mb-3" v-model="payer" id="payerSelector">
-          <option selected value="XU">徐涵浩</option>
-          <option value="SHEN">沈艺童</option>
-          <option value="WU">吴峰</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label for="totalAmount" class="form-label">总价</label>
-        <input type="number" step="0.01" class="form-control" id="totalAmount" placeholder="总价" v-model="totalAmount">
-      </div>
-      <div class="mb-3">
-        <label for="totalAmount" class="form-label">服务费率(%)</label>
-        <input type="number" step="1" class="form-control" id="totalAmount" placeholder="服务费率" v-model="serviceCharge">
-      </div>
-      <div class="mb-3">
-        <label for="totalAmount" class="form-label">税率(%)</label>
-        <input type="number" step="1" class="form-control" id="totalAmount" placeholder="税率" v-model="GST">
-      </div>
-      <div class="input-group mb-3">
-        <button class="btn btn-outline-primary" @click="addConsumer('Xu')" :class="{ active: consumer.xu}" data-bs-placement="top">徐涵浩</button>
-        <input type="number" step="0.01" class="form-control" placeholder="手动输入配额" v-model="xu">
-      </div>
-      <div class="input-group mb-3">
-        <button class="btn btn-outline-primary" @click="addConsumer('Shen')" :class="{ active: consumer.shen}" data-bs-placement="top">沈艺童</button>
-        <input type="number" step="0.01" class="form-control" placeholder="手动输入配额" v-model="shen">
-      </div>
-      <div class="input-group mb-3">
-        <button class="btn btn-outline-primary" @click="addConsumer('Wu')" :class="{ active: consumer.wu}" data-bs-placement="top">吴锋</button>
-        <input type="number" step="0.01" class="form-control" placeholder="手动输入配额" v-model="wu">
-      </div>
-      <div class="d-inline-flex gap-1">
-        <button type="button" class="btn btn-secondary" @click="autoSum">计算总价</button>
-        <button type="button" class="btn btn-secondary" @click="autoAdd">增量分配</button>
-        <button type="button" class="btn btn-secondary" @click="autoMinus">减量分配</button>
-        <button type="button" class="btn btn-secondary" @click="autoGST">自动计税</button>
-        <button type="button" class="btn btn-primary" @click="saveReceipt">保存</button>
+      <div class="card">
+        <div class="mb-3">
+          <label for="description" class="form-label">描述</label>
+          <input type="text" class="form-control" id="description" placeholder="消费描述" v-model="newReceipt.description">
+        </div>
+        <div class="mb-3">
+          <label for="date" class="form-label">消费时间</label>
+          <input type="datetime-local" class="form-control" id="date" v-model="newReceipt.dateTime">
+        </div>
+        <div class="mb-3">
+          <label for="totalAmount" class="form-label">总价</label>
+          <input type="number" step="0.01" class="form-control" id="totalAmount" placeholder="总价" v-model="totalAmount">
+        </div>
+        <div class="mb-3">
+          <label for="totalAmount" class="form-label">服务费率(%)</label>
+          <input type="number" step="1" class="form-control" id="totalAmount" placeholder="服务费率" v-model="serviceCharge">
+        </div>
+        <div class="mb-3">
+          <label for="totalAmount" class="form-label">税率(%)</label>
+          <input type="number" step="1" class="form-control" id="totalAmount" placeholder="税率" v-model="GST">
+        </div>
+        <div class="mb-3">
+          <label for="payerSelector" class="form-label">付款人</label>
+          <select class="form-select mb-3" v-model="newReceipt.payerId" id="payerSelector">
+            <option v-for="user in users" :key="user.id" :value="user.id">
+              {{ user.name }}
+            </option>
+          </select>
+        </div>
+        <div v-for="user in users" class="input-group mb-3">
+          <button class="btn btn-outline-primary" @click="setActive(user)" :class="{ active: user.active}" data-bs-placement="top">{{user.name}}</button>
+          <input type="number" step="0.01" class="form-control" placeholder="手动输入配额" v-model="user.amount">
+        </div>
+        <div class="mb-3">
+          <div class="d-inline-flex gap-1">
+            <button type="button" class="btn btn-secondary" @click="autoSum">计算总价</button>
+            <button type="button" class="btn btn-secondary" @click="autoAdd">增量分配</button>
+            <button type="button" class="btn btn-secondary" @click="autoMinus">减量分配</button>
+            <button type="button" class="btn btn-secondary" @click="autoGST">自动计税</button>
+            <button type="button" class="btn btn-primary" @click="add">保存</button>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="card">
-      <table class="table table-striped table-hover">
-        <thead>
-        <tr>
-          <th scope="col">消费描述</th>
-          <th scope="col">消费时间</th>
-          <th scope="col">沈艺童's</th>
-          <th scope="col">徐涵浩's</th>
-          <th scope="col">吴锋's</th>
-          <th scope="col">付款人</th>
-          <th scope="col">删除</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="item in receipts" :key="item.id">
-          <td>{{item.description}}</td>
-          <td>{{item.dateTime}}</td>
-          <td>{{item.shen}}</td>
-          <td>{{item.xu}}</td>
-          <td>{{item.wu}}</td>
-          <td>{{item.payer}}</td>
-          <td><button class="btn btn-outline-danger btn-sm" @click="deleteReceipt(item.id)"
-                      style="--bs-btn-padding-y: 0rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .85rem;">删除</button></td>
-        </tr>
-        </tbody>
-      </table>
-      <ul class="pagination">
-        <li class="page-item">
-          <a class="page-link" @click="jumpPage(1)">
-            <span><i class="bi bi-chevron-bar-left"></i></span>
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" @click="previousPage">
-            <span>&laquo;</span>
-          </a>
-        </li>
-        <li class="page-item" v-for="{id} in generatedRows.slice(leftRow, rightRow)" @click="jumpPage(id)" :key="id"><a class="page-link" :class="{'chosen': id === row}">{{ id }}</a></li>
-        <li class="page-item">
-          <a class="page-link" @click="nextPage">
-            <span>&raquo;</span>
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" @click="jumpPage(this.rows)">
-            <span><i class="bi bi-chevron-bar-right"></i></span>
-          </a>
-        </li>
-      </ul>
+    <div class="modal fade" id="filterModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5">选择分组</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group modal-input">
+              <div class="w-100">
+                <div class="input-group mb-2">
+                  <input
+                      type="text"
+                      class="form-control"
+                      placeholder="搜索分组..."
+                      v-model="groupSearch"
+                      @keyup.enter="fetchGroupList(1)"
+                  >
+                  <button
+                      type="button"
+                      class="btn btn-outline-success"
+                      @click="fetchGroupList(1)">
+                    搜索
+                  </button>
+                </div>
+                <select class="form-select" v-model="currentGroup.id">
+                  <option disabled value="0">请选择分组</option>
+                  <option v-for="group in groupList" :key="group.id" :value="group.id">
+                    {{ group.name }}
+                  </option>
+                </select>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <button
+                      class="btn btn-outline-secondary btn-sm"
+                      :disabled="groupPageNo === 1"
+                      @click="fetchGroupList(groupPageNo - 1)">
+                    上一页
+                  </button>
+                  <span>第 {{ groupPageNo }} 页 / 共 {{ groupTotalPages }} 页</span>
+                  <button
+                      class="btn btn-outline-secondary btn-sm"
+                      :disabled="groupPageNo === groupTotalPages"
+                      @click="fetchGroupList(groupPageNo + 1)">
+                    下一页
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelFilter">取消</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal" @click="doFilter">筛选</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.center-box{
+.outer{
   display: flex;
-  align-items: center;
-  flex-direction: column;
-  font-size: 15px;
 }
 
 .card{
-  width: 70%;
+  width: 100%;
   margin-right: 20px;
   margin-left: 20px;
   margin-top: 10px;
@@ -398,23 +368,50 @@ export default {
   background-color: #ffffff;
 }
 
-.pagination{
+.panel{
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  font-size: 15px;
 }
 
-.page-item{
-  cursor: pointer;
+.title {
+  font-size: 30px;
+  font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
-.switch{
+.title .input-group {
+  width: auto;
+  flex: 0 0 auto;
+  font-size: 16px; /* 可选：防止按钮太厚 */
+}
+
+.modal-input{
+  margin: 20px;
+  width: 90%;
+}
+
+.alert-danger{
+  display: none;
   position: absolute;
-  left: 10px;
-  top: 10px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 400px;
+  height: 100px;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
 }
 
-.chosen{
-  color: white;
-  background-color: #0d6efd;
+button {
+  white-space: nowrap;
 }
 </style>
