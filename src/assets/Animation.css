@@ -1,0 +1,117 @@
+@keyframes rollUpIn {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes rollDownIn {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes turnLeftIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes turnRightIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+
+}
+
+@keyframes rollUpOut {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-150%);
+    }
+}
+
+@keyframes rollDownOut {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes turnLeftOut {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+@keyframes turnRightOut {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+    }
+
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+
+}
+
+@keyframes carousel {
+    0%,
+    17.5% {
+        transform: translateZ(-35vw) rotateY(0);
+        /* 变换：沿z轴平移-35vw，绕y轴旋转0度 */
+    }
+
+    27.5%,
+    45% {
+        transform: translateZ(-35vw) rotateY(-120deg);
+        /* 变换：沿z轴平移-35vw，绕y轴旋转-120度 */
+    }
+
+    55%,
+    72.5% {
+        transform: translateZ(-35vw) rotateY(-240deg);
+        /* 变换：沿z轴平移-35vw，绕y轴旋转-240度 */
+    }
+
+    82.5%,
+    100% {
+        transform: translateZ(-35vw) rotateY(-360deg);
+    }
+}

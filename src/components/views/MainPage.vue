@@ -186,6 +186,23 @@ export default {
      * @author 13299
      */
     add() {
+      // 校验必填字段
+      if (!this.newReceipt.description) {
+        this.warnText = "描述为空";
+      } else if (!this.newReceipt.dateTime) {
+        this.warnText = "时间为空";
+      } else if (!this.newReceipt.payerId) {
+        this.warnText = "付款人为空";
+      }
+
+      // 如果有警告内容就显示提示并中断发送
+      if (this.warnText) {
+        this.$refs.warn.style.display = "flex";
+        this.$refs.warn.style.animation = "fadeOut 2s ease both";
+        setTimeout(this.alertInit, 2000, this.$refs.warn);
+        return;
+      }
+
       // 发送前转为普通数值
       this.newReceipt.groupId = this.currentGroup.id;
       this.newReceipt.consumers = this.users.map((u) => ({

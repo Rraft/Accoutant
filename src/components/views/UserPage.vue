@@ -162,6 +162,21 @@ export default {
      * @author 13299
      */
     modify() {
+      // 校验必填字段
+      if (!this.editUser.name) {
+        this.warnText = "姓名为空";
+      }else if (!this.editUser.groupId){
+        this.warnText = "分组为空";
+      }
+
+      // 如果有警告内容就显示提示并中断发送
+      if (this.warnText) {
+        this.$refs.warn.style.display = "flex";
+        this.$refs.warn.style.animation = "fadeOut 2s ease both";
+        setTimeout(this.alertInit, 2000, this.$refs.warn);
+        return;
+      }
+
       this.$axios({
         url: this.$baseUrl + "/user/modify",
         data: this.editUser,
@@ -184,6 +199,21 @@ export default {
      * @author 13299
      */
     add() {
+      // 校验必填字段
+      if (!this.newUser.name) {
+        this.warnText = "姓名为空";
+      }else if (!this.newUser.groupId){
+        this.warnText = "分组为空";
+      }
+
+      // 如果有警告内容就显示提示并中断发送
+      if (this.warnText) {
+        this.$refs.warn.style.display = "flex";
+        this.$refs.warn.style.animation = "fadeOut 2s ease both";
+        setTimeout(this.alertInit, 2000, this.$refs.warn);
+        return;
+      }
+
       this.$axios({
         url: this.$baseUrl + "/user/add",
         data: this.newUser,
