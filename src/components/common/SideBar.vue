@@ -23,15 +23,15 @@ export default {
               isOpen: false,
             },
             {
-              title: '收据管理',
-              path: '/Database/ReceiptPage',
-              icon: 'bi bi-briefcase',
-              isOpen: false,
-            },
-            {
               title: '用户管理',
               path: '/Database/UserPage',
               icon: 'bi bi-person',
+              isOpen: false,
+            },
+            {
+              title: '收据管理',
+              path: '/Database/ReceiptPage',
+              icon: 'bi bi-briefcase',
               isOpen: false,
             },
           ],
@@ -70,7 +70,10 @@ export default {
 
 <template>
   <div class="sidebar">
-    <div class="logo">Accountant</div>
+    <div class="logo">
+      <img src="@/assets/logo.svg" alt="logo"/>
+      <span>Accountant</span>
+    </div>
     <ul class="menu">
       <li
           v-for="item in menuItems"
@@ -116,6 +119,7 @@ export default {
 .icon{
   margin-right: 10px;
 }
+
 .sidebar {
   width: 250px;
   height: 100vh;
@@ -124,9 +128,11 @@ export default {
 }
 
 .logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
   font-size: 1.5rem;
-  text-align: center;
 }
 
 .menu {

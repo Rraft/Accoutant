@@ -8,6 +8,9 @@ export default {
   data() {
     return {
       // 用户分页数据
+      filter:{
+        groupId: null,
+      },
       searchInfo: "",
       warnText: "",
       dataList: [],
@@ -66,6 +69,23 @@ export default {
     },
 
     /**
+     * @description: 根据分组筛选查询分页
+     * @author 13299
+     */
+    doFilter(){
+      this.getPage();
+    },
+
+    /**
+     * @description: 删除筛选的分组id，重新查询分页
+     * @author 13299
+     */
+    cancelFilter(){
+      this.filter.groupId = null;
+      this.getPage();
+    },
+
+    /**
      * @description: 获取用户分页数据
      * @author 13299
      */
@@ -76,6 +96,7 @@ export default {
           pageSize: 20,
           pageNo: this.row,
           keyword: this.searchInfo,
+          groupId: this.filter.groupId,
         },
         method: "POST",
         headers: { "Content-Type": "application/json;charset=UTF-8" },
@@ -99,6 +120,14 @@ export default {
         groupName: item.groupName,
       };
       this.fetchGroupList(1);
+    },
+
+    /**
+     * @description: 关闭Modal，清空分组查询栏
+     * @author 13299
+     */
+    closeModal(){
+      this.groupSearch = "";
     },
 
     /**
@@ -263,7 +292,8 @@ export default {
           <input class="form-control me-3" placeholder="Search" v-model="searchInfo">
           <button class="btn btn-outline-success me-3" @click="getPage">搜索</button>
         </form>
-        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#saveModal" @click="fetchGroupList(1)">新增</button>
+        <button class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#saveModal" @click="fetchGroupList(1)">新增</button>
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="fetchGroupList(1)">筛选</button>
       </div>
       <div class="card">
         <table class="table table-striped table-hover">
@@ -361,7 +391,7 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="closeModal">取消</button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="deleteUser">删除</button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @click="modify">更新</button>
           </div>
@@ -422,8 +452,64 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="closeModal">取消</button>
             <button type="button" class="btn btn-success" data-bs-dismiss="modal" @click="add">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="filterModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5">根据分组筛选</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group modal-input">
+              <div class="w-100">
+                <div class="input-group mb-2">
+                  <input
+                      type="text"
+                      class="form-control"
+                      placeholder="搜索分组..."
+                      v-model="groupSearch"
+                      @keyup.enter="fetchGroupList(1)"
+                  >
+                  <button
+                      type="button"
+                      class="btn btn-outline-success"
+                      @click="fetchGroupList(1)">
+                    搜索
+                  </button>
+                </div>
+                <select class="form-select" v-model="filter.groupId">
+                  <option disabled value="0">请选择分组</option>
+                  <option v-for="group in groupList" :key="group.id" :value="group.id">
+                    {{ group.name }}
+                  </option>
+                </select>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <button
+                      class="btn btn-outline-secondary btn-sm"
+                      :disabled="groupPageNo === 1"
+                      @click="fetchGroupList(groupPageNo - 1)">
+                    上一页
+                  </button>
+                  <span>第 {{ groupPageNo }} 页 / 共 {{ groupTotalPages }} 页</span>
+                  <button
+                      class="btn btn-outline-secondary btn-sm"
+                      :disabled="groupPageNo === groupTotalPages"
+                      @click="fetchGroupList(groupPageNo + 1)">
+                    下一页
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelFilter">取消</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal" @click="doFilter">筛选</button>
           </div>
         </div>
       </div>

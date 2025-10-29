@@ -54,17 +54,10 @@ export default {
           "Content-Type": "application/json;charset=UTF-8",
         }
       }).then(res => {
-        this.dataList = res.data.data.records;
-        this.rows = res.data.data.total / 10; //设置rows属性，十条一页
-        if ((res.data.data.total / 10) % 1 !== 0){ //判断对象数量能不能被10整除
-          this.rows = Math.floor(res.data.data.total / 10) + 1; //不能则多设置一页存放多余对象
-        }
-        if (this.rows > 9){ //若总页数大于9，则设置初始右界为9
-          this.rightRow = 9;
-
-        }else { //若不足9页，则设置页数为初始右界
-          this.rightRow = this.rows;
-        }
+        const data = res.data.data;
+        this.dataList = data.records;
+        this.rows = Math.ceil(data.total / 10);
+        this.rightRow = Math.min(this.rows, 9);
       });
     },
 
