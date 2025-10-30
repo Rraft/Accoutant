@@ -1,6 +1,7 @@
 <script>
 import SideBar from "@/components/common/SideBar.vue";
 import Decimal from "decimal.js";
+import {showWarn} from "@/utils/common.js";
 
 export default {
   name: "MainPage",
@@ -84,8 +85,8 @@ export default {
      * @author 13299
      */
     openModal() {
-      this.originGroup = this.currentGroup;
-      this.getUserByGroup(1);
+      this.originGroup = JSON.parse(JSON.stringify(this.currentGroup));
+      this.getUserByGroup();
     },
 
     /**
@@ -169,10 +170,9 @@ export default {
      * @author 13299
      */
     autoGST() {
-      const rate = new Decimal(100)
-          .plus(this.serviceCharge)
-          .times(new Decimal(100).plus(this.GST))
-          .div(10000); // ((100+serviceCharge)*(100+GST))/10000
+      const rate = new Decimal(1)
+          .plus(this.serviceCharge.div(100))
+          .times(new Decimal(1).plus(this.GST.div(100)));
 
       this.users.forEach((user) => {
         if (user.active) {
@@ -193,13 +193,13 @@ export default {
         this.warnText = "时间为空";
       } else if (!this.newReceipt.payerId) {
         this.warnText = "付款人为空";
+      } else {
+        this.warnText = "";
       }
 
       // 如果有警告内容就显示提示并中断发送
       if (this.warnText) {
-        this.$refs.warn.style.display = "flex";
-        this.$refs.warn.style.animation = "fadeOut 2s ease both";
-        setTimeout(this.alertInit, 2000, this.$refs.warn);
+        showWarn(this, this.warnText)
         return;
       }
 
@@ -216,18 +216,12 @@ export default {
         data: this.newReceipt,
       }).then((res) => {
         if (res.data.code === 0) {
-          this.users.forEach(user => {
-            user.amount = new Decimal(0);
-            this.newReceipt.description = "";
-            this.newReceipt.dateTime = "";
-            this.newReceipt.payerId = null;
-            this.totalAmount = new Decimal(0);
-          })
+          this.users.forEach(user => user.amount = new Decimal(0));
+          Object.assign(this.newReceipt, { description: "", dateTime: "", payerId: null });
+          this.totalAmount = new Decimal(0);
         } else {
           this.warnText = `${res.data.code}: ${res.data.msg}`;
-          this.$refs.warn.style.display = "flex";
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit, 2000, this.$refs.warn);
+          showWarn(this, this.warnText)
         }
       });
     },
@@ -242,7 +236,7 @@ export default {
   async created() {
     await this.fetchGroupList(1);
     if (this.groupList.length > 0) {
-      this.currentGroup = this.groupList[0];
+      this.currentGroup = JSON.parse(JSON.stringify(this.groupList[0]));
       this.getUserByGroup();
     }
   },
@@ -334,9 +328,9 @@ export default {
                     搜索
                   </button>
                 </div>
-                <select class="form-select" v-model="currentGroup.id">
-                  <option disabled value="0">请选择分组</option>
-                  <option v-for="group in groupList" :key="group.id" :value="group.id">
+                <select class="form-select" v-model="currentGroup">
+                  <option disabled>请选择分组</option>
+                  <option v-for="group in groupList" :key="group.id" :value="group">
                     {{ group.name }}
                   </option>
                 </select>

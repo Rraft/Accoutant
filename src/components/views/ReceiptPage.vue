@@ -1,5 +1,8 @@
 <script>
 import SideBar from "@/components/common/SideBar.vue";
+import { showWarn, deepClone, computePagination } from "@/utils/common.js";
+import { formatDateTime } from "@/utils/format.js";
+
 export default {
   name: "ReceiptPage",
   components: {SideBar},
@@ -20,8 +23,8 @@ export default {
         id: null,
         description: "",
         dateTime: "",
-        payerId: null,
         consumers: [],
+        payerId: null,
       },
       // 组选择相关
       groupList: [],
@@ -51,15 +54,7 @@ export default {
   },
 
   methods: {
-    /**
-     * @description: 重置警告栏
-     * @author 13299
-     */
-    alertInit(el) {
-      el.style.display = "none";
-      el.style.animation = "none";
-    },
-
+    formatDateTime,
     /**
      * @description: 获取分组分页
      * @author 13299
@@ -113,9 +108,8 @@ export default {
         }
       }).then(res => {
         const data = res.data.data;
-        this.dataList = data.records;
-        this.rows = Math.ceil(data.total / 10);
-        this.rightRow = Math.min(this.rows, 9);
+        const { rows, leftRow, rightRow } = computePagination(data.total, 20);
+        Object.assign(this, { rows, leftRow, rightRow, dataList: data.records});
       });
     },
 
@@ -173,8 +167,8 @@ export default {
      * @author 13299
      */
     openFilter(){
-      this.originGroup = this.currentGroup;
-      this.getUserByGroup(1);
+      this.originGroup = deepClone(this.currentGroup);
+      this.getUserByGroup();
     },
 
     /**
@@ -200,7 +194,7 @@ export default {
      * @author 13299
      */
     openEditModal(item){
-      this.editReceipt = item;
+      this.editReceipt = deepClone(item);
     },
 
     /**
@@ -220,9 +214,7 @@ export default {
           this.getPage();
         } else {
           this.warnText = `${res.data.code}: ${res.data.msg}`;
-          this.$refs.warn.style.display = "flex";
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit, 2000, this.$refs.warn);
+          showWarn(this, this.warnText);
         }
       });
     },
@@ -242,9 +234,7 @@ export default {
           this.getPage();
         } else {
           this.warnText = `${res.data.code}: ${res.data.msg}`;
-          this.$refs.warn.style.display = "flex";
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit, 2000, this.$refs.warn);
+          this.showWarn(this, this.warnText);
         }
       });
     },
@@ -253,7 +243,7 @@ export default {
   async created() {
     await this.fetchGroupList(1);
     if (this.groupList.length > 0) {
-      this.currentGroup = this.groupList[0];
+      this.currentGroup = JSON.parse(JSON.stringify(this.groupList[0]));
       this.getPage();
       this.getUserByGroup();
     }
@@ -279,8 +269,8 @@ export default {
       </div>
       <div class="card search-bar">
         <form class="d-flex" role="search">
-          <input class="form-control me-3" placeholder="搜索栏" v-model="searchInfo">
-          <button class="btn btn-outline-success me-3" @click="getPage">搜索</button>
+          <input class="form-control me-3" placeholder="搜索栏" style="max-width: 300px;" v-model="searchInfo">
+          <button type="button" class="btn btn-outline-success me-3" @click="getPage">搜索</button>
         </form>
       </div>
       <div class="card">
@@ -299,7 +289,7 @@ export default {
           <tr v-for="item in dataList" :key="item.id" data-bs-toggle="modal" data-bs-target="#editModal" @click="openEditModal(item)">
             <td>{{item.id}}</td>
             <td>{{item.description}}</td>
-            <td>{{item.dateTime}}</td>
+            <td>{{formatDateTime(item.dateTime)}}</td>
             <td>{{item.payerName}}</td>
             <td>{{item.total}}</td>
             <td v-for="consumer in item.consumers">{{consumer.amount}}</td>
@@ -393,9 +383,9 @@ export default {
                     搜索
                   </button>
                 </div>
-                <select class="form-select" v-model="currentGroup.id">
+                <select class="form-select" v-model="currentGroup">
                   <option disabled value="0">请选择分组</option>
-                  <option v-for="group in groupList" :key="group.id" :value="group.id">
+                  <option v-for="group in groupList" :key="group.id" :value="group">
                     {{ group.name }}
                   </option>
                 </select>

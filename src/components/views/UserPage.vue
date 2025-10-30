@@ -1,5 +1,6 @@
 <script>
 import SideBar from "@/components/common/SideBar.vue";
+import {computePagination, showWarn} from "@/utils/common.js";
 
 export default {
   name: "UserPage",
@@ -59,15 +60,6 @@ export default {
 
   methods: {
     /**
-     * @description: 复位警告栏
-     * @author 13299
-     */
-    alertInit(el) {
-      el.style.display = "none";
-      el.style.animation = "none";
-    },
-
-    /**
      * @description: 根据分组筛选查询分页
      * @author 13299
      */
@@ -101,9 +93,8 @@ export default {
         headers: { "Content-Type": "application/json;charset=UTF-8" },
       }).then((res) => {
         const data = res.data.data;
-        this.dataList = data.records;
-        this.rows = Math.ceil(data.total / 10);
-        this.rightRow = Math.min(this.rows, 9);
+        const { rows, leftRow, rightRow } = computePagination(data.total, 20);
+        Object.assign(this, { rows, leftRow, rightRow, dataList: data.records});
       });
     },
 
@@ -118,15 +109,16 @@ export default {
         name: item.name,
         groupName: item.groupName,
       };
-      this.fetchGroupList(1);
+      this.openModal();
     },
 
     /**
-     * @description: 关闭Modal，清空分组查询栏
+     * @description: 打开Modal，清空分组查询栏
      * @author 13299
      */
-    closeModal(){
+    openModal(){
       this.groupSearch = "";
+      this.fetchGroupList(1);
     },
 
     /**
@@ -161,13 +153,13 @@ export default {
         this.warnText = "姓名为空";
       }else if (!this.editUser.groupId){
         this.warnText = "分组为空";
+      } else {
+        this.warnText = "";
       }
 
       // 如果有警告内容就显示提示并中断发送
       if (this.warnText) {
-        this.$refs.warn.style.display = "flex";
-        this.$refs.warn.style.animation = "fadeOut 2s ease both";
-        setTimeout(this.alertInit, 2000, this.$refs.warn);
+        showWarn(this, this.warnText);
         return;
       }
 
@@ -181,9 +173,7 @@ export default {
           this.getPage();
         } else {
           this.warnText = `${res.data.code}: ${res.data.msg}`;
-          this.$refs.warn.style.display = "flex";
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit, 2000, this.$refs.warn);
+          showWarn(this, this.warnText);
         }
       });
     },
@@ -198,13 +188,13 @@ export default {
         this.warnText = "姓名为空";
       }else if (!this.newUser.groupId){
         this.warnText = "分组为空";
+      } else {
+        this.warnText = "";
       }
 
       // 如果有警告内容就显示提示并中断发送
       if (this.warnText) {
-        this.$refs.warn.style.display = "flex";
-        this.$refs.warn.style.animation = "fadeOut 2s ease both";
-        setTimeout(this.alertInit, 2000, this.$refs.warn);
+        showWarn(this, this.warnText);
         return;
       }
 
@@ -216,12 +206,11 @@ export default {
       }).then((res) => {
         if (res.data.code === 0) {
           this.getPage();
-          this.newUser.name = "";
+          this.newUser = { groupId: 0, name: "", groupName: "" };
+
         } else {
           this.warnText = `${res.data.code}: ${res.data.msg}`;
-          this.$refs.warn.style.display = "flex";
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit, 2000, this.$refs.warn);
+          showWarn(this, this.warnText);
         }
       });
     },
@@ -240,9 +229,7 @@ export default {
           this.getPage();
         } else {
           this.warnText = `${res.data.code}: ${res.data.msg}`;
-          this.$refs.warn.style.display = "flex";
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit, 2000, this.$refs.warn);
+          showWarn(this, this.warnText)
         }
       });
     },
@@ -315,10 +302,10 @@ export default {
       <div class="card search-bar">
         <form class="d-flex" role="search">
           <input class="form-control me-3" placeholder="搜索栏" v-model="searchInfo">
-          <button class="btn btn-outline-success me-3" @click="getPage">搜索</button>
+          <button type="button" class="btn btn-outline-success me-3" @click="getPage">搜索</button>
         </form>
-        <button class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#saveModal" @click="fetchGroupList(1)">新增</button>
-        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="fetchGroupList(1)">筛选</button>
+        <button class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#saveModal" @click="openModal">新增</button>
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="openModal">筛选</button>
       </div>
       <div class="card">
         <table class="table table-striped table-hover">
@@ -367,7 +354,7 @@ export default {
         <div class="modal-content">
           <div class="modal-header">
             <h1 class="modal-title fs-5">编辑</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" @click="closeModal"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="input-group modal-input">
@@ -416,7 +403,7 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="closeModal">取消</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="deleteUser">删除</button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @click="modify">更新</button>
           </div>
@@ -428,7 +415,7 @@ export default {
         <div class="modal-content">
           <div class="modal-header">
             <h1 class="modal-title fs-5">新增用户</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" @click="closeModal"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="input-group modal-input">
@@ -477,7 +464,7 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="closeModal">取消</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
             <button type="button" class="btn btn-success" data-bs-dismiss="modal" @click="add">保存</button>
           </div>
         </div>
@@ -488,7 +475,7 @@ export default {
         <div class="modal-content">
           <div class="modal-header">
             <h1 class="modal-title fs-5">根据分组筛选</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" @click="closeModal"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="input-group modal-input">

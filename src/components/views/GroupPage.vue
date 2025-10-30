@@ -1,5 +1,6 @@
 <script>
 import SideBar from "@/components/common/SideBar.vue";
+import { showWarn, computePagination } from "@/utils/common.js";
 
 export default {
   name: "GroupPage",
@@ -29,15 +30,6 @@ export default {
 
   methods: {
     /**
-     * @description: 复位警告栏
-     * @author 13299
-     */
-    alertInit(a){
-      a.style.display = "none";
-      a.style.animation = "none";
-    },
-
-    /**
      * @description: 获取所有记录
      * @author 13299
      */
@@ -55,9 +47,8 @@ export default {
         }
       }).then(res => {
         const data = res.data.data;
-        this.dataList = data.records;
-        this.rows = Math.ceil(data.total / 10);
-        this.rightRow = Math.min(this.rows, 9);
+        const { rows, leftRow, rightRow } = computePagination(data.total, 20);
+        Object.assign(this, { rows, leftRow, rightRow, dataList: data.records});
       });
     },
 
@@ -81,13 +72,13 @@ export default {
       // 校验必填字段
       if (!this.editGroup.name) {
         this.warnText = "分组名为空";
+      } else {
+        this.warnText = "";
       }
 
       // 如果有警告内容就显示提示并中断发送
       if (this.warnText) {
-        this.$refs.warn.style.display = "flex";
-        this.$refs.warn.style.animation = "fadeOut 2s ease both";
-        setTimeout(this.alertInit, 2000, this.$refs.warn);
+        showWarn(this, this.warnText);
         return;
       }
 
@@ -104,9 +95,7 @@ export default {
 
         }else {
           this.warnText = res.data.code + ":" + res.data.msg; //显示警告信息
-          this.$refs.warn.style.display = "flex";  //弹出警告栏并慢慢消失
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit,2000, this.$refs.warn);
+          showWarn(this, this.warnText);
         }
       });
     },
@@ -119,13 +108,13 @@ export default {
       // 校验必填字段
       if (!this.newGroup.name) {
         this.warnText = "分组名为空";
+      } else {
+        this.warnText = "";
       }
 
       // 如果有警告内容就显示提示并中断发送
       if (this.warnText) {
-        this.$refs.warn.style.display = "flex";
-        this.$refs.warn.style.animation = "fadeOut 2s ease both";
-        setTimeout(this.alertInit, 2000, this.$refs.warn);
+        showWarn(this, this.warnText);
         return;
       }
 
@@ -139,12 +128,11 @@ export default {
       }).then(res => {
         if (res.data.code === 0){
           this.getPage();
+          this.newGroup = { name: "", description: "" };
 
         }else {
           this.warnText = res.data.code + ":" + res.data.msg; //显示警告信息
-          this.$refs.warn.style.display = "flex";  //弹出警告栏并慢慢消失
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit,2000, this.$refs.warn);
+          showWarn(this, this.warnText);
         }
       });
     },
@@ -166,9 +154,7 @@ export default {
 
         }else {
           this.warnText = res.data.code + ":" + res.data.msg; //显示警告信息
-          this.$refs.warn.style.display = "flex";  //弹出警告栏并慢慢消失
-          this.$refs.warn.style.animation = "fadeOut 2s ease both";
-          setTimeout(this.alertInit,2000, this.$refs.warn);
+          showWarn(this, this.warnText);
         }
       });
     },
