@@ -257,7 +257,7 @@ export default {
     <side-bar></side-bar>
     <div class="card panel">
       <div class="card title">
-        <i class="bi bi-person"></i>
+        <i class="bi bi-house"></i>
         <span class="me-3">新建收据</span>
         <div class="input-group modal-input">
           <span class="input-group-text">当前分组</span>
@@ -268,23 +268,23 @@ export default {
       <div class="card">
         <div class="mb-3">
           <label for="description" class="form-label">描述</label>
-          <input type="text" class="form-control" id="description" placeholder="消费描述" v-model="newReceipt.description">
+          <input type="text" class="form-control" placeholder="消费描述" v-model="newReceipt.description">
         </div>
         <div class="mb-3">
           <label for="date" class="form-label">消费时间</label>
-          <input type="datetime-local" class="form-control" id="date" v-model="newReceipt.dateTime">
+          <input type="datetime-local" class="form-control" v-model="newReceipt.dateTime">
         </div>
         <div class="mb-3">
-          <label for="totalAmount" class="form-label">总价</label>
-          <input type="number" step="0.01" class="form-control" id="totalAmount" placeholder="总价" v-model="totalAmount">
+          <label for="totalAmount" class="form-label">单价</label>
+          <input type="number" step="0.01" class="form-control" placeholder="总价" v-model="totalAmount">
         </div>
         <div class="mb-3">
           <label for="totalAmount" class="form-label">服务费率(%)</label>
-          <input type="number" step="1" class="form-control" id="totalAmount" placeholder="服务费率" v-model="serviceCharge">
+          <input type="number" step="1" class="form-control" placeholder="服务费率" v-model="serviceCharge">
         </div>
         <div class="mb-3">
           <label for="totalAmount" class="form-label">税率(%)</label>
-          <input type="number" step="1" class="form-control" id="totalAmount" placeholder="税率" v-model="GST">
+          <input type="number" step="1" class="form-control" placeholder="税率" v-model="GST">
         </div>
         <div class="mb-3">
           <label for="payerSelector" class="form-label">付款人</label>
@@ -405,7 +405,7 @@ export default {
 .title .input-group {
   width: auto;
   flex: 0 0 auto;
-  font-size: 16px; /* 可选：防止按钮太厚 */
+  font-size: 16px;
 }
 
 .modal-input{

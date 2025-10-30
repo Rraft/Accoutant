@@ -36,7 +36,6 @@ export default {
       groupPageNo: 1,
       groupPageSize: 10,
       groupTotal: 0,
-      groupLoading: false,
     };
   },
 
@@ -136,7 +135,6 @@ export default {
      */
     fetchGroupList(page = 1) {
       this.groupPageNo = page;
-      this.groupLoading = true;
       this.$axios({
         url: this.$baseUrl + "/group/getPage",
         method: "POST",
@@ -146,15 +144,11 @@ export default {
           pageNo: this.groupPageNo,
           keyword: this.groupSearch,
         },
-      })
-          .then((res) => {
+      }).then((res) => {
             const { records, total } = res.data.data;
             this.groupList = records || [];
             this.groupTotal = total || 0;
-          })
-          .finally(() => {
-            this.groupLoading = false;
-          });
+      });
     },
 
     /**
@@ -320,7 +314,7 @@ export default {
       <div class="card title"><i class="bi bi-person"></i>用户管理</div>
       <div class="card search-bar">
         <form class="d-flex" role="search">
-          <input class="form-control me-3" placeholder="Search" v-model="searchInfo">
+          <input class="form-control me-3" placeholder="搜索栏" v-model="searchInfo">
           <button class="btn btn-outline-success me-3" @click="getPage">搜索</button>
         </form>
         <button class="btn btn-outline-primary me-3" data-bs-toggle="modal" data-bs-target="#saveModal" @click="fetchGroupList(1)">新增</button>
