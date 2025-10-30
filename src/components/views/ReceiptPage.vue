@@ -1,7 +1,7 @@
 <script>
 import SideBar from "@/components/common/SideBar.vue";
 import { showWarn, deepClone, computePagination } from "@/utils/common.js";
-import { formatDateTime } from "@/utils/format.js";
+import {formatDateTime} from "@/utils/format.js";
 
 export default {
   name: "ReceiptPage",
@@ -17,7 +17,7 @@ export default {
       row: 1,  // 当前页码
       leftRow: 0,
       rightRow: 0,
-      originGroup: { id: null, name: "" },
+      modalGroup: { id: null, name: "" },
       currentGroup: { id: null, name: "" },
       editReceipt: {
         id: null,
@@ -167,8 +167,10 @@ export default {
      * @author 13299
      */
     openFilter(){
-      this.originGroup = deepClone(this.currentGroup);
+      this.modalGroup = deepClone(this.currentGroup);
       this.getUserByGroup();
+      this.groupSearch = "";
+      this.fetchGroupList(1);
     },
 
     /**
@@ -176,17 +178,9 @@ export default {
      * @author 13299
      */
     doFilter() {
+      this.currentGroup = this.modalGroup;
       this.getUserByGroup();
       this.getPage();
-    },
-
-    /**
-     * @description: 关闭Modal，不更换分组重新添入原分组
-     * @author 13299
-     */
-    cancelFilter() {
-      this.currentGroup = this.originGroup;
-      this.groupSearch = "";
     },
 
     /**
@@ -243,7 +237,7 @@ export default {
   async created() {
     await this.fetchGroupList(1);
     if (this.groupList.length > 0) {
-      this.currentGroup = JSON.parse(JSON.stringify(this.groupList[0]));
+      this.currentGroup = deepClone(this.groupList[0]);
       this.getPage();
       this.getUserByGroup();
     }
@@ -264,7 +258,7 @@ export default {
         <div class="input-group modal-input">
           <span class="input-group-text">当前分组</span>
           <input type="text" class="form-control" readonly style="max-width: 300px;" v-model="currentGroup.name">
-          <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="openFilter">选择</button>
+          <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="openFilter">选择</button>
         </div>
       </div>
       <div class="card search-bar">
@@ -383,7 +377,7 @@ export default {
                     搜索
                   </button>
                 </div>
-                <select class="form-select" v-model="currentGroup">
+                <select class="form-select" v-model="modalGroup">
                   <option disabled value="0">请选择分组</option>
                   <option v-for="group in groupList" :key="group.id" :value="group">
                     {{ group.name }}
@@ -408,7 +402,7 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelFilter">取消</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
             <button type="button" class="btn btn-success" data-bs-dismiss="modal" @click="doFilter">筛选</button>
           </div>
         </div>
@@ -418,66 +412,4 @@ export default {
 </template>
 
 <style scoped>
-.outer{
-  display: flex;
-}
-
-.card{
-  width: 100%;
-  margin-right: 20px;
-  margin-left: 20px;
-  margin-top: 10px;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
-}
-
-.panel{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 15px;
-}
-
-.title {
-  font-size: 30px;
-  font-weight: bold;
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  flex-wrap: nowrap;
-  align-items: center;
-}
-
-.title .input-group {
-  width: auto;
-  flex: 0 0 auto;
-  font-size: 16px;
-}
-
-.modal-input{
-  margin: 20px;
-  width: 90%;
-}
-
-.alert-danger{
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto;
-  width: 400px;
-  height: 100px;
-  align-items: center;
-  justify-content: center;
-  z-index: 99;
-}
-
-button {
-  white-space: nowrap;
-}
 </style>

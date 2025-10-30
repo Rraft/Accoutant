@@ -37,7 +37,7 @@ export default {
           ],
         },
         {
-          title: '结算',
+          title: '月度结算',
           path: '/BillPage',
           icon: 'bi bi-person-bounding-box',
           isOpen: false,

@@ -1,6 +1,7 @@
 <script>
 import SideBar from "@/components/common/SideBar.vue";
 import {computePagination, showWarn} from "@/utils/common.js";
+import modal from "bootstrap/js/src/modal.js";
 
 export default {
   name: "UserPage",
@@ -9,9 +10,8 @@ export default {
   data() {
     return {
       // 用户分页数据
-      filter:{
-        groupId: null,
-      },
+      modalGroupId: null,
+      groupId: null,
       searchInfo: "",
       warnText: "",
       dataList: [],
@@ -41,6 +41,9 @@ export default {
   },
 
   computed: {
+    modal() {
+      return modal
+    },
     /**
      * @description: 主用户分页页码
      * @author 13299
@@ -64,16 +67,18 @@ export default {
      * @author 13299
      */
     doFilter(){
+      this.groupId = this.modalGroupId;
       this.getPage();
     },
 
     /**
-     * @description: 删除筛选的分组id，重新查询分页
+     * @description: 打开Modal，清空分组查询栏
      * @author 13299
      */
-    cancelFilter(){
-      this.filter.groupId = null;
-      this.getPage();
+    openModal(){
+      this.modalGroupId = this.groupId;
+      this.groupSearch = "";
+      this.fetchGroupList(1);
     },
 
     /**
@@ -87,7 +92,7 @@ export default {
           pageSize: 20,
           pageNo: this.row,
           keyword: this.searchInfo,
-          groupId: this.filter.groupId,
+          groupId: this.groupId,
         },
         method: "POST",
         headers: { "Content-Type": "application/json;charset=UTF-8" },
@@ -110,15 +115,6 @@ export default {
         groupName: item.groupName,
       };
       this.openModal();
-    },
-
-    /**
-     * @description: 打开Modal，清空分组查询栏
-     * @author 13299
-     */
-    openModal(){
-      this.groupSearch = "";
-      this.fetchGroupList(1);
     },
 
     /**
@@ -495,7 +491,7 @@ export default {
                     搜索
                   </button>
                 </div>
-                <select class="form-select" v-model="filter.groupId">
+                <select class="form-select" v-model="modalGroupId">
                   <option disabled value="0">请选择分组</option>
                   <option v-for="group in groupList" :key="group.id" :value="group.id">
                     {{ group.name }}
@@ -520,7 +516,7 @@ export default {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="cancelFilter">取消</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
             <button type="button" class="btn btn-success" data-bs-dismiss="modal" @click="doFilter">筛选</button>
           </div>
         </div>
@@ -530,72 +526,4 @@ export default {
 </template>
 
 <style scoped>
-.outer{
-  display: flex;
-}
-
-.card{
-  width: 100%;
-  margin-right: 20px;
-  margin-left: 20px;
-  margin-top: 10px;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
-}
-
-.panel{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 15px;
-}
-
-.title{
-  font-size: 30px;
-  font-weight: bold;
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-}
-
-.search-bar{
-  display: flex;
-  flex-direction: row;
-}
-
-.pagination{
-  display: flex;
-  justify-content: center;
-}
-
-.page-item{
-  cursor: pointer;
-}
-
-.modal-input{
-  margin: 20px;
-  width: 90%;
-}
-
-.alert-danger{
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto;
-  width: 400px;
-  height: 100px;
-  align-items: center;
-  justify-content: center;
-  z-index: 99;
-}
-
-button {
-  white-space: nowrap;
-}
 </style>
