@@ -135,11 +135,11 @@ export default {
         <span class="me-3">月度结算</span>
         <div class="input-group modal-input">
           <span class="input-group-text">当前年月</span>
-          <input type="text" class="form-control" readonly style="max-width: 300px;" v-model="currentMonth">
+          <input type="text" class="form-control length-limited-input" readonly v-model="currentMonth">
         </div>
         <div class="input-group modal-input">
           <span class="input-group-text">当前分组</span>
-          <input type="text" class="form-control" readonly style="max-width: 300px;" v-model="currentGroup.name">
+          <input type="text" class="form-control length-limited-input" readonly v-model="currentGroup.name">
         </div>
         <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="openModal">选择</button>
       </div>

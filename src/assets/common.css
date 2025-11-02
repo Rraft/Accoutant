@@ -76,6 +76,10 @@
     background-color: #0d6efd;
 }
 
+.length-limited-input{
+    max-width: 300px;
+}
+
 button {
     white-space: nowrap;
 }

@@ -240,7 +240,7 @@ export default {
         <span class="me-3">新建收据</span>
         <div class="input-group modal-input">
           <span class="input-group-text">当前分组</span>
-          <input type="text" class="form-control" readonly style="max-width: 300px;" v-model="currentGroup.name">
+          <input type="text" class="form-control length-limited-input" readonly v-model="currentGroup.name">
           <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="openModal">选择</button>
         </div>
       </div>
@@ -251,7 +251,7 @@ export default {
         </div>
         <div class="mb-3">
           <label for="date" class="form-label">消费时间</label>
-          <input type="datetime-local" class="form-control" v-model="newReceipt.dateTime">
+          <input type="datetime-local" class="form-control length-limited-input" v-model="newReceipt.dateTime">
         </div>
         <div class="mb-3">
           <label for="totalAmount" class="form-label">单价</label>
@@ -275,7 +275,7 @@ export default {
         </div>
         <div v-for="user in users" class="input-group mb-3">
           <button class="btn btn-outline-primary" @click="setActive(user)" :class="{ active: user.active}" data-bs-placement="top">{{user.name}}</button>
-          <input type="number" step="0.01" class="form-control" placeholder="手动输入配额" v-model="user.amount">
+          <input type="number" step="0.01" class="form-control length-limited-input" placeholder="手动输入配额" v-model="user.amount">
         </div>
         <div class="mb-3">
           <div class="d-inline-flex gap-1">

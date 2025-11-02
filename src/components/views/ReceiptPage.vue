@@ -257,13 +257,13 @@ export default {
         <span class="me-3">收据管理</span>
         <div class="input-group modal-input">
           <span class="input-group-text">当前分组</span>
-          <input type="text" class="form-control" readonly style="max-width: 300px;" v-model="currentGroup.name">
+          <input type="text" class="form-control length-limited-input" readonly v-model="currentGroup.name">
           <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filterModal" @click="openFilter">选择</button>
         </div>
       </div>
       <div class="card search-bar">
         <form class="d-flex" role="search">
-          <input class="form-control me-3" placeholder="搜索栏" style="max-width: 300px;" v-model="searchInfo">
+          <input class="form-control length-limited-input me-3" placeholder="搜索栏" v-model="searchInfo">
           <button type="button" class="btn btn-outline-success me-3" @click="getPage">搜索</button>
         </form>
       </div>
