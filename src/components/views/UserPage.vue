@@ -97,9 +97,14 @@ export default {
         method: "POST",
         headers: { "Content-Type": "application/json;charset=UTF-8" },
       }).then((res) => {
-        const data = res.data.data;
-        const { rows, leftRow, rightRow } = computePagination(data.total, 20);
-        Object.assign(this, { rows, leftRow, rightRow, dataList: data.records});
+        if (res.data.code === 0){
+          const data = res.data.data;
+          const { rows, leftRow, rightRow } = computePagination(data.total, 20);
+          Object.assign(this, { rows, leftRow, rightRow, dataList: data.records});
+        }else {
+          this.warnText = res.data.code + ":" + res.data.msg; //显示警告信息
+          showWarn(this, this.warnText);
+        }
       });
     },
 
@@ -133,9 +138,14 @@ export default {
           keyword: this.groupSearch,
         },
       }).then((res) => {
-            const { records, total } = res.data.data;
-            this.groupList = records || [];
-            this.groupTotal = total || 0;
+        if (res.data.code === 0) {
+          const { records, total } = res.data.data;
+          this.groupList = records || [];
+          this.groupTotal = total || 0;
+        }else {
+          this.warnText = `${res.data.code}: ${res.data.msg}`;
+          this.showWarn(this, this.warnText);
+        }
       });
     },
 

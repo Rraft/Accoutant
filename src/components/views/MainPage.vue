@@ -63,11 +63,16 @@ export default {
         headers: { "Content-Type": "application/json;charset=UTF-8" },
         params: { groupId: this.currentGroup.id },
       }).then((res) => {
-        this.users = res.data.data;
-        this.users.forEach((user) => {
-          user.active = false;
-          user.amount = new Decimal(0);
-        });
+        if (res.data.code === 0){
+          this.users = res.data.data;
+          this.users.forEach((user) => {
+            user.active = false;
+            user.amount = new Decimal(0);
+          });
+        }else {
+          this.warnText = res.data.code + ":" + res.data.msg; //显示警告信息
+          showWarn(this, this.warnText);
+        }
       });
     },
 
