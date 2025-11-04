@@ -122,9 +122,9 @@ export default {
 
 .sidebar {
   width: 250px;
-  height: 100vh;
   background: #2c3e50;
   color: white;
+  min-height: 100vh;
 }
 
 .logo {
