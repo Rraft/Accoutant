@@ -13,7 +13,11 @@
 
 本仓库是Accountant项目的前端程序仓库。
 
-后端仓库指路: [AccountantServer: 记账小工具](https://gitee.com/abc15879/accountant-server)
+后端仓库指路:
+
+Gitee: [AccountantServer: 记账小工具](https://gitee.com/abc15879/accountant-server)
+
+Github: [Rraft/Accoutant-Server: 记账小工具](https://github.com/Rraft/Accoutant-Server)
 
 
 ### 安装教程
@@ -22,8 +26,14 @@
 
 安装使用只需三步：
 
-1. 下载发行版，链接：[Accountant 发行版 - Gitee.com](https://gitee.com/abc15879/accountant/releases)
+1. 下载发行版，链接：
+
+   Gitee: [Accountant 发行版 - Gitee.com](https://gitee.com/abc15879/accountant/releases)
+
+   Github: [Releases · Rraft/Accoutant](https://github.com/Rraft/Accoutant/releases)
+
 2. 解压到本地
+
 3. 双击start.bat运行
 
 双击start.bat后会弹出一个cmd，看到如下界面表示程序正常启动，程序在运行后会自动打开默认浏览器访问localhost:5174，之后就可以开始使用了。如果没有自动打开，可以自行复制路径到浏览器中访问。使用完后在Command区域输入"stop"就能关闭所有服务。
